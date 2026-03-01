@@ -1,7 +1,9 @@
 import { Heart, Coffee, Rocket, Users } from 'lucide-react';
 import { Button } from '~/components/ui/button';
+import { useNavigate } from 'react-router';
 
 export function DonationSection() {
+  const navigate = useNavigate();
   return (
     <section className="py-24 px-4 bg-gradient-to-br from-orange-500 via-rose-500 to-teal-500">
       <div className="max-w-4xl mx-auto space-y-12">
@@ -53,7 +55,7 @@ export function DonationSection() {
 
             <Button
               className="w-full bg-orange-500 text-white hover:bg-orange-600 font-bold py-4 px-6 text-lg rounded-lg transition shadow-lg inline-flex items-center justify-center gap-2"
-              onClick={() => window.open('https://www.buymeacoffee.com', '_blank')}
+              onClick={() => navigate('/signup')}
             >
               <Coffee className="w-5 h-5" />
               Buy Us a Coffee ☕
@@ -65,7 +67,7 @@ export function DonationSection() {
           </div>
 
           {/* Why It Matters Card */}
-          <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-10 text-white space-y-6 border border-white border-opacity-20">
+          <div className="bg-gray-900 bg-opacity-70 backdrop-blur-md rounded-2xl p-10 text-white space-y-6 border border-white border-opacity-30">
             <div className="flex items-center gap-3">
               <Rocket className="w-8 h-8" />
               <h3 className="text-2xl font-bold">Why We're Different</h3>
@@ -73,23 +75,23 @@ export function DonationSection() {
 
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-orange-50 mb-2">🚀 No VC Funding</p>
-                <p className="text-sm text-orange-100">We're not beholden to investors pushing ads and data harvesting. We answer to families, not shareholders.</p>
+                <p className="font-semibold text-white mb-2">🚀 No VC Funding</p>
+                <p className="text-sm text-gray-200">We're not beholden to investors pushing ads and data harvesting. We answer to families, not shareholders.</p>
               </div>
 
               <div>
-                <p className="font-semibold text-orange-50 mb-2">🔒 Privacy First</p>
-                <p className="text-sm text-orange-100">Your family data stays yours. We'll never sell it, never track it, never monetize it. Period.</p>
+                <p className="font-semibold text-white mb-2">🔒 Privacy First</p>
+                <p className="text-sm text-gray-200">Your family data stays yours. We'll never sell it, never track it, never monetize it. Period.</p>
               </div>
 
               <div>
-                <p className="font-semibold text-orange-50 mb-2">♾️ Free Forever</p>
-                <p className="text-sm text-orange-100">Core features are free forever. Donations keep us sustainable without forcing anyone to pay.</p>
+                <p className="font-semibold text-white mb-2">♾️ Free Forever</p>
+                <p className="text-sm text-gray-200">Core features are free forever. Donations keep us sustainable without forcing anyone to pay.</p>
               </div>
 
               <div>
-                <p className="font-semibold text-orange-50 mb-2">👥 Community-Driven</p>
-                <p className="text-sm text-orange-100">Features come from what families ask for. You help shape what we build next.</p>
+                <p className="font-semibold text-white mb-2">👥 Community-Driven</p>
+                <p className="text-sm text-gray-200">Features come from what families ask for. You help shape what we build next.</p>
               </div>
             </div>
           </div>

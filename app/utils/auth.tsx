@@ -28,11 +28,23 @@ const AuthContext = createContext<AuthContextType | null>(null);
 function AuthProviderInner({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [isClient, setIsClient] = useState(false);
+  const [authTimeout, setAuthTimeout] = useState(false);
   const utils = trpc.useUtils();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Add a timeout for auth loading (5 seconds)
+  useEffect(() => {
+    if (!isClient) return;
+    
+    const timer = setTimeout(() => {
+      setAuthTimeout(true);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [isClient]);
 
   // Query session only on client (SSR safe)
   const sessionQuery = trpc.auth.me.useQuery(undefined, {
@@ -65,7 +77,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   }, [sessionQuery]);
 
   const value: AuthContextType = {
-    isLoaded: isClient && (sessionQuery.data !== undefined || !sessionQuery.isLoading),
+    isLoaded: isClient && (sessionQuery.data !== undefined || authTimeout),
     isSignedIn: sessionQuery.data?.isSignedIn ?? false,
     userId: sessionQuery.data?.user?.id ?? null,
     user: sessionQuery.data?.user ?? null,

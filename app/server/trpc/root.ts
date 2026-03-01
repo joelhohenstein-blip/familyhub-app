@@ -3,6 +3,7 @@ import { todoRouter } from './routers/todo.router';
 import { productRouter } from './routers/product.router';
 import { chatRouter } from './routers/chat.router';
 import { authRouter } from './routers/auth.router';
+import { paymentsRouter } from './routers/payments.router';
 import { familiesRouter } from './routers/families.router';
 import { familyMembersRouter } from './routers/familyMembers.router';
 import { postsRouter } from './routers/posts.router';
@@ -44,7 +45,6 @@ import { remindersRouter } from './routers/reminders.router';
 import { announcementsRouter } from './routers/announcements.router';
 import { shoppingListsRouter } from './routers/shoppingLists.router';
 import { billingRouter } from './routers/billing.router';
-import { paymentsRouter } from './routers/payments.router';
 import { subscriptionSyncRouter } from './routers/subscription-sync.router';
 import { featureAccessRouter } from './routers/featureAccess.router';
 import { tierAccessRouter } from './routers/tierAccess.router';
@@ -55,6 +55,7 @@ import { supportRouter } from './routers/support.router';
 
 // Define the root router that combines all your sub-routers
 export const appRouter = router({
+  payments: paymentsRouter,
   todo: todoRouter,
   product: productRouter,
   chat: chatRouter,
@@ -100,7 +101,6 @@ export const appRouter = router({
   announcements: announcementsRouter,
   shoppingLists: shoppingListsRouter,
   billing: billingRouter,
-  payments: paymentsRouter,
   subscriptionSync: subscriptionSyncRouter,
   featureAccess: featureAccessRouter,
   tierAccess: tierAccessRouter,
@@ -111,4 +111,4 @@ export const appRouter = router({
 });
 
 // Export type definition of the API
-export type AppRouter = typeof appRouter; 
+export type AppRouter = typeof appRouter;

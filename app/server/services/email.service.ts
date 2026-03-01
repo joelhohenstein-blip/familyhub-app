@@ -2,7 +2,15 @@ import { Resend } from 'resend';
 import { db } from '~/db/index.server';
 import { auditLog } from '~/db/schema';
 
-const resend = new Resend(process.env.RESEND_API_KEY || '');
+// Lazy initialize Resend to avoid errors if API key is missing
+let resend: Resend | null = null;
+
+function getResend() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export interface SubscriptionEmailData {
   email: string;

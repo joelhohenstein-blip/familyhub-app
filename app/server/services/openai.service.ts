@@ -1,14 +1,16 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openaiApiKey = process.env.OPENAI_API_KEY;
-if (!openaiApiKey) {
-  throw new Error('OPENAI_API_KEY environment variable is not set');
-}
+// Lazy initialize OpenAI client
+let openai: OpenAI | null = null;
 
-const openai = new OpenAI({
-  apiKey: openaiApiKey,
-});
+function getOpenAI() {
+  if (!openai && process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 // Simple in-memory rate limiting for OpenAI API
 const requestTimestamps: number[] = [];
