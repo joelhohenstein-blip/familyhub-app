@@ -94,8 +94,60 @@ function handleBotRequest(
 
           responseHeaders.set("Content-Type", "text/html");
 
+          // Wrap the stream to inject a module script for entry.client.tsx
+          const wrappedStream = new PassThrough();
+          let injected = false;
+          let buffer = '';
+
+          body.on('data', (chunk) => {
+            buffer += chunk.toString();
+            // Check if we have the closing body tag
+            const bodyIndex = buffer.indexOf('</body>');
+            if (bodyIndex !== -1 && !injected) {
+              injected = true;
+              const before = buffer.substring(0, bodyIndex);
+              const after = buffer.substring(bodyIndex);
+              wrappedStream.write(before);
+              wrappedStream.write('<script type="module">import("/app/entry.client.tsx");</script>');
+              wrappedStream.write(after);
+              buffer = '';
+            } else if (buffer.length > 10000) {
+              // Write out chunks if buffer gets too large
+              wrappedStream.write(buffer);
+              buffer = '';
+            }
+          });
+
+          body.on('end', () => {
+            if (buffer) {
+              if (!injected) {
+                const bodyIndex = buffer.indexOf('</body>');
+                if (bodyIndex !== -1) {
+                  const before = buffer.substring(0, bodyIndex);
+                  const after = buffer.substring(bodyIndex);
+                  wrappedStream.write(before);
+                  wrappedStream.write('<script type="module">import("/app/entry.client.tsx");</script>');
+                  wrappedStream.write(after);
+                } else {
+                  wrappedStream.write(buffer);
+                  wrappedStream.write('<script type="module">import("/app/entry.client.tsx");</script>');
+                }
+              } else {
+                wrappedStream.write(buffer);
+              }
+            }
+            wrappedStream.end();
+          });
+
+          body.on('error', (err) => {
+            wrappedStream.destroy(err);
+          });
+
+          // Convert wrappedStream to ReadableStream for Response
+          const wrappedReadableStream = createReadableStreamFromReadable(wrappedStream);
+
           resolve(
-            new Response(stream, {
+            new Response(wrappedReadableStream, {
               headers: responseHeaders,
               status: responseStatusCode,
             }),
@@ -139,12 +191,63 @@ function handleBrowserRequest(
         onShellReady() {
           shellRendered = true;
           const body = new PassThrough();
-          const stream = createReadableStreamFromReadable(body);
 
           responseHeaders.set("Content-Type", "text/html");
 
+          // Wrap the stream to inject a module script for entry.client.tsx
+          const wrappedStream = new PassThrough();
+          let injected = false;
+          let buffer = '';
+
+          body.on('data', (chunk) => {
+            buffer += chunk.toString();
+            // Check if we have the closing body tag
+            const bodyIndex = buffer.indexOf('</body>');
+            if (bodyIndex !== -1 && !injected) {
+              injected = true;
+              const before = buffer.substring(0, bodyIndex);
+              const after = buffer.substring(bodyIndex);
+              wrappedStream.write(before);
+              wrappedStream.write('<script type="module">import("/app/entry.client.tsx");</script>');
+              wrappedStream.write(after);
+              buffer = '';
+            } else if (buffer.length > 10000) {
+              // Write out chunks if buffer gets too large
+              wrappedStream.write(buffer);
+              buffer = '';
+            }
+          });
+
+          body.on('end', () => {
+            if (buffer) {
+              if (!injected) {
+                const bodyIndex = buffer.indexOf('</body>');
+                if (bodyIndex !== -1) {
+                  const before = buffer.substring(0, bodyIndex);
+                  const after = buffer.substring(bodyIndex);
+                  wrappedStream.write(before);
+                  wrappedStream.write('<script type="module">import("/app/entry.client.tsx");</script>');
+                  wrappedStream.write(after);
+                } else {
+                  wrappedStream.write(buffer);
+                  wrappedStream.write('<script type="module">import("/app/entry.client.tsx");</script>');
+                }
+              } else {
+                wrappedStream.write(buffer);
+              }
+            }
+            wrappedStream.end();
+          });
+
+          body.on('error', (err) => {
+            wrappedStream.destroy(err);
+          });
+
+          // Convert wrappedStream to ReadableStream for Response
+          const wrappedReadableStream = createReadableStreamFromReadable(wrappedStream);
+
           resolve(
-            new Response(stream, {
+            new Response(wrappedReadableStream, {
               headers: responseHeaders,
               status: responseStatusCode,
             }),

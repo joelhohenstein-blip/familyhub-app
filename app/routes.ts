@@ -3,6 +3,10 @@
 import { type RouteConfig, index, route, layout } from "@react-router/dev/routes";
 
 export default [
+  // API routes - MUST be outside layout to avoid React Router form submission interception
+  route("api/trpc/*", "routes/api.trpc.$.tsx"),
+  route("api/docs/*", "routes/api.docs.$.tsx"),
+  
   layout("routes/root.tsx", [
     index("routes/home.tsx"),
     route("pricing", "routes/pricing.tsx"),
@@ -47,10 +51,6 @@ export default [
     route("auth/github/callback", "routes/auth/github.callback.tsx"),
     route("auth/google", "routes/auth/google.tsx"),
     route("auth/google/callback", "routes/auth/google.callback.tsx"),
-    // Documentation API
-    route("api/docs/*", "routes/api.docs.$.tsx"),
-    // tRPC API
-    route("api/trpc/*", "routes/api.trpc.$.tsx"),
     // Catch-all 404
     route("*", "routes/$.tsx"),
   ]),

@@ -10,8 +10,11 @@ import { SESSION_COOKIE_NAME } from '../context';
 const SALT_ROUNDS = 12;
 const SESSION_EXPIRY_DAYS = 7;
 
-// Use SameSite=None; Secure for iframe support (requires HTTPS)
-const sameSiteAttr = 'SameSite=None; Secure';
+// Use SameSite=None; Secure for iframe support in production (requires HTTPS)
+// In development, use SameSite=Lax to allow cookies to be sent with requests
+const sameSiteAttr = process.env.NODE_ENV === 'production' 
+  ? 'SameSite=None; Secure' 
+  : 'SameSite=Lax';
 
 // Generate a secure random token
 function generateSessionToken(): string {

@@ -1,8 +1,9 @@
-import { Heart, Coffee, Check, ArrowLeft, Loader2 } from 'lucide-react';
-import { Button } from '~/components/ui/button';
+// Copyright © 2026 Hohenstein. All rights reserved.
+
+import { Heart, Check, ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '~/utils/auth';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { trpc } from '~/utils/trpc';
 
 export default function DonatePage() {
@@ -11,7 +12,19 @@ export default function DonatePage() {
   const [loadingTier, setLoadingTier] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState(false);
 
-  const createCheckout = trpc.payments.createDonationCheckout.useMutation();
+  const createCheckout = trpc.payments.createDonationCheckout.useMutation({
+    onSuccess: (data) => {
+      console.log('✅ Mutation success:', data);
+      if (data?.url) {
+        console.log('🔗 Redirecting to Stripe:', data.url);
+        window.location.href = data.url;
+      }
+    },
+    onError: (error) => {
+      console.error('❌ Mutation error:', error);
+      setLoadingTier(null);
+    },
+  });
 
   // Redirect to signup if not authenticated (but only after auth is loaded)
   useEffect(() => {
@@ -19,6 +32,8 @@ export default function DonatePage() {
       navigate('/signup');
     }
   }, [isLoaded, isSignedIn, navigate]);
+
+
 
   // Show success message if returning from Stripe
   useEffect(() => {
@@ -28,6 +43,25 @@ export default function DonatePage() {
       setTimeout(() => setSuccessMessage(false), 5000);
     }
   }, []);
+
+  // Handle donation button click
+  const handleDonate = useCallback((amount: number, tierLabel: string) => {
+    console.log('🔘 handleDonate called:', { amount, tierLabel });
+    
+    if (!isLoaded) {
+      alert('Please wait for authentication to load...');
+      return;
+    }
+    
+    if (!isSignedIn) {
+      navigate('/signup');
+      return;
+    }
+    
+    setLoadingTier(amount);
+    console.log('📤 Calling createCheckout mutation...');
+    createCheckout.mutate({ amount, tierLabel });
+  }, [isLoaded, isSignedIn, navigate, createCheckout]);
 
   const donationTiers = [
     {
@@ -56,25 +90,6 @@ export default function DonatePage() {
       benefits: ['All previous benefits', 'Lifetime supporter status', 'Exclusive founding member badge', 'Direct access to founders'],
     },
   ];
-
-  const handleDonate = async (amount: number, tierLabel: string) => {
-    try {
-      console.log('🎯 handleDonate called with:', { amount, tierLabel });
-      setLoadingTier(amount);
-      const result = await createCheckout.mutateAsync({ amount, tierLabel });
-      console.log('✅ Checkout result:', result);
-
-      if (result.url) {
-        // Redirect to the Stripe checkout URL
-        window.location.href = result.url;
-      }
-    } catch (error) {
-      console.error('Donation error:', error);
-      alert('Failed to process donation. Please try again.');
-    } finally {
-      setLoadingTier(null);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
@@ -131,24 +146,27 @@ export default function DonatePage() {
                 ))}
               </ul>
 
-              <Button
+              <button
+                data-donate-button
+                data-amount={tier.amount}
+                data-tier-label={tier.label}
                 onClick={() => handleDonate(tier.amount, tier.label)}
                 disabled={loadingTier === tier.amount}
-                className={`w-full ${
+                className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
                   tier.featured
-                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-400'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:bg-gray-100'
                 }`}
               >
                 {loadingTier === tier.amount ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2 inline" />
                     Processing...
                   </>
                 ) : (
                   `Donate ${tier.amount}`
                 )}
-              </Button>
+              </button>
             </div>
           ))}
         </div>

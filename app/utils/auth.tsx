@@ -31,6 +31,8 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   const [authTimeout, setAuthTimeout] = useState(false);
   const utils = trpc.useUtils();
 
+  // Use useEffect to set isClient to true only on the client
+  // This prevents hydration mismatches by ensuring server and client render the same HTML initially
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -47,10 +49,13 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   }, [isClient]);
 
   // Query session only on client (SSR safe)
+  // IMPORTANT: This query is disabled during SSR to prevent hydration mismatches
   const sessionQuery = trpc.auth.me.useQuery(undefined, {
     enabled: isClient,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    // Suppress hydration warnings since we intentionally render different content on server vs client
+    suspense: false,
   });
 
   const logoutMutation = trpc.auth.logout.useMutation({

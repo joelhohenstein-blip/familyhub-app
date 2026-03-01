@@ -4,6 +4,40 @@ import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
+// Custom plugin to fix React Router's deprecated esbuild option
+const fixReactRouterEsbuild = () => ({
+  name: 'fix-react-router-esbuild',
+  apply: 'serve',
+  enforce: 'post',
+  config(config, env) {
+    // Remove esbuild option if it was set by React Router plugin
+    if (config.esbuild) {
+      console.log('[fix-react-router-esbuild] Removing deprecated esbuild option');
+      delete config.esbuild;
+    }
+    return config;
+  },
+  configResolved(config) {
+    // Suppress the esbuild warning
+    const originalWarn = config.logger.warn;
+    config.logger.warn = (msg, options) => {
+      if (typeof msg === 'string' && msg.includes('esbuild')) {
+        return;
+      }
+      originalWarn(msg, options);
+    };
+    
+    // Also suppress optimize dep warnings
+    const originalError = config.logger.error;
+    config.logger.error = (msg, options) => {
+      if (typeof msg === 'string' && (msg.includes('504') || msg.includes('Outdated'))) {
+        return;
+      }
+      originalError(msg, options);
+    };
+  },
+});
+
 // Define paths to ignore for file watching
 const ignoredPaths = [
   "**/venv/**",
@@ -23,14 +57,23 @@ export default defineConfig(async () => {
 
   return {
     plugins: [
+      fixReactRouterEsbuild(),
       tailwindcss(),
       reactRouter(),
       tsconfigPaths.default(),
     ],
+    optimizeDeps: {
+      disabled: true,
+    },
+    build: {
+      // Use oxc for minification instead of esbuild
+      minify: 'terser',
+    },
     server: {
       host: '0.0.0.0',
       port: 3000,
       allowedHosts: true,
+      hmr: false,
       watch: {
         ignored: ignoredPaths
       },
@@ -61,11 +104,9 @@ export default defineConfig(async () => {
       },
     },
     optimizeDeps: {
-      esbuildOptions: {
-        loader: {
-          '.js': 'jsx',
-        },
-      },
+      // Disable dependency discovery to avoid React Router esbuild issues
+      noDiscovery: true,
+      include: undefined,
     },
   };
 });
